@@ -9,6 +9,7 @@ const create = [
   check('postalCode').exists().isString().isLength({ min: 1, max: 255 }),
   check('url').optional({ nullable: true, checkFalsy: true }).isString().isURL().trim(),
   check('shippingCosts').exists().isFloat({ min: 0 }).toFloat(),
+  check('percentage').optional({ nullable: true, checkFalsy: true }).isFloat({ min: -5.0, max: 5.0 }).toFloat(),
   check('email').optional({ nullable: true, checkFalsy: true }).isString().isEmail().trim(),
   check('phone').optional({ nullable: true, checkFalsy: true }).isString().isLength({ min: 1, max: 255 }).trim(),
   check('restaurantCategoryId').exists({ checkNull: true }).isInt({ min: 1 }).toInt(),
@@ -31,6 +32,7 @@ const update = [
   check('description').optional({ nullable: true, checkFalsy: true }).isString().trim(),
   check('address').exists().isString().isLength({ min: 1, max: 255 }).trim(),
   check('postalCode').exists().isString().isLength({ min: 1, max: 255 }),
+  check('percentage').optional({ nullable: true, checkFalsy: true }).isFloat({ min: -5.0, max: 5.0 }).toFloat(),
   check('url').optional({ nullable: true, checkFalsy: true }).isString().isURL().trim(),
   check('shippingCosts').exists().isFloat({ min: 0 }).toFloat(),
   check('email').optional({ nullable: true, checkFalsy: true }).isString().isEmail().trim(),
@@ -52,3 +54,4 @@ const update = [
 ]
 
 export { create, update }
+

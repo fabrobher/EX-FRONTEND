@@ -22,6 +22,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
+      percentage: {
+        type: Sequelize.DOUBLE,
+        defaultValue: 0.0
+      },
       url: {
         type: Sequelize.STRING
       },

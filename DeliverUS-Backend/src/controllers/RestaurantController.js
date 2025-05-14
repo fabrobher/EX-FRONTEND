@@ -1,4 +1,4 @@
-import { Restaurant, Product, RestaurantCategory, ProductCategory } from '../models/models.js'
+import { Product, ProductCategory, Restaurant, RestaurantCategory, sequelizeSession } from '../models/models.js'
 
 const index = async function (req, res) {
   try {
@@ -71,11 +71,23 @@ const show = async function (req, res) {
 }
 
 const update = async function (req, res) {
+  const t = await sequelizeSession.transaction()
   try {
     await Restaurant.update(req.body, { where: { id: req.params.restaurantId } })
     const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
+    const productsToBeUpdated = await Product.findAll(
+      { where: { restaurantId: updatedRestaurant.id } }, { transaction: t }
+    )
+
+    for (const newProduct of productsToBeUpdated) {
+      const newPrice = newProduct.basePrice * (1 + (updatedRestaurant.percentage / 100))
+      await newProduct.update({ price: newPrice }, t)
+    }
+
+    await t.commit()
     res.json(updatedRestaurant)
   } catch (err) {
+    t.rollback()
     res.status(500).send(err)
   }
 }
