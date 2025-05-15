@@ -36,45 +36,46 @@ const checkOrderVisible = (req, res, next) => {
   }
 }
 
-const checkOrderIsPending = async (req, res, next) => {
+// TODO: Middlewares de control de tiempo límite y estado válido para deshacerse
+const checkDate = (fecha) => {
+  const diff = Math.abs(new Date() - fecha) // diferencia en milisegundos
+  return ((diff / 60000) <= 5)
+}
+
+const checkOrderCanBeForwarded = async (req, res, next) => {
   try {
     const order = await Order.findByPk(req.params.orderId)
-    const isPending = !order.startedAt
-    if (isPending) {
+    const status = order.status
+    if (status !== 'delivered') {
       return next()
     } else {
-      return res.status(409).send('The order has already been started')
+      return res.status(409).send('The order is already delivered')
     }
   } catch (err) {
     return res.status(500).send(err.message)
   }
 }
 
-const checkOrderCanBeSent = async (req, res, next) => {
+const checkOrderCanBeBackwarded = async (req, res, next) => {
   try {
     const order = await Order.findByPk(req.params.orderId)
-    const isShippable = order.startedAt && !order.sentAt
-    if (isShippable) {
-      return next()
-    } else {
-      return res.status(409).send('The order cannot be sent')
+    switch (order.status) {
+      case 'in process':
+        if (!checkDate(order.startedAt)) { return res.status(409).send('The order cannot be backwarded after 5 minutes') }
+        break
+      case 'sent':
+        if (!checkDate(order.sentAt)) { return res.status(409).send('The order cannot be backwarded after 5 minutes') }
+        break
+      case 'delivered':
+        if (!checkDate(order.deliveredAt)) { return res.status(409).send('The order cannot be backwarded after 5 minutes') }
+        break
+      default:
+        return res.status(409).send('The order is already pending')
     }
-  } catch (err) {
-    return res.status(500).send(err.message)
-  }
-}
-const checkOrderCanBeDelivered = async (req, res, next) => {
-  try {
-    const order = await Order.findByPk(req.params.orderId)
-    const isDeliverable = order.startedAt && order.sentAt && !order.deliveredAt
-    if (isDeliverable) {
-      return next()
-    } else {
-      return res.status(409).send('The order cannot be delivered')
-    }
+    return next()
   } catch (err) {
     return res.status(500).send(err.message)
   }
 }
 
-export { checkOrderOwnership, checkOrderCustomer, checkOrderVisible, checkOrderIsPending, checkOrderCanBeSent, checkOrderCanBeDelivered, checkRestaurantExists }
+export { checkOrderOwnership, checkOrderCustomer, checkOrderVisible, checkRestaurantExists, checkOrderCanBeForwarded, checkOrderCanBeBackwarded }

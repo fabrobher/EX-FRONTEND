@@ -42,6 +42,7 @@ const loadFileRoutes = function (app) {
       RestaurantMiddleware.checkRestaurantOwnership,
       RestaurantController.destroy)
 
+  // TODO: [OCTUBRE 2024]
   app.route('/restaurants/:restaurantId/orders')
     .get(
       isLoggedIn,
